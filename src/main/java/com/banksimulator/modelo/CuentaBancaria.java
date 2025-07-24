@@ -3,13 +3,13 @@ package com.banksimulator.modelo;
 public class CuentaBancaria {
 
     private String numeroCuenta;
-    private String titular;
     private double saldo;
+    private Cliente cliente;
 
-    public CuentaBancaria(String numeroCuenta, String titular, double saldo) {
+    public CuentaBancaria(String numeroCuenta, double saldo, Cliente cliente) {
         this.numeroCuenta = numeroCuenta;
-        this.titular = titular;
         this.saldo = saldo;
+        this.cliente = cliente;
     }
 
     public void depositar (double cantidad){
@@ -28,17 +28,17 @@ public class CuentaBancaria {
         return numeroCuenta;
     }
 
-    public String getTitular() {
-        return titular;
-    }
-
     public double getSaldo() {
         return saldo;
     }
 
+    public Cliente getCliente() {
+        return cliente;
+    }
+
     @Override
     public String toString() {
-        return "Cuenta de " + titular + " (" + numeroCuenta + ") - Saldo: " + saldo + "€";
+        return "Cuenta de " + cliente.getNombre() + " (" + numeroCuenta + ") - Saldo: " + saldo + "€";
     }
 }
 

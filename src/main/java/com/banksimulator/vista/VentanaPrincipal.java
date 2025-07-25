@@ -6,6 +6,7 @@ import com.banksimulator.modelo.GestorCuentas;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.font.NumericShaper;
 import java.text.NumberFormat;
 import java.text.ParseException;
 
@@ -23,7 +24,7 @@ public class VentanaPrincipal extends JFrame {
 
         setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes
+        gbc.insets = new Insets(5, 5, 5, 5); // Márgenes entre cada una de las celdas del Grid
 
         // Fila 0 - Número de cuenta
         gbc.gridx = 0; gbc.gridy = 0; gbc.anchor = GridBagConstraints.EAST;
@@ -63,6 +64,10 @@ public class VentanaPrincipal extends JFrame {
         JPanel panelBotones = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         JButton botonCrear = new JButton("Crear cuenta");
         JButton botonVer = new JButton("Ver Cuentas");
+        JButton botonIngresar = new JButton ("Ingresar dinero");
+        JButton botonRetirar  = new JButton ("Retirar dinero");
+        panelBotones.add(botonIngresar);
+        panelBotones.add(botonRetirar);
         panelBotones.add(botonCrear);
         panelBotones.add(botonVer);
         add(panelBotones, gbc);
@@ -89,5 +94,68 @@ public class VentanaPrincipal extends JFrame {
         botonVer.addActionListener(e -> new VerCuentasFrame(gestor));
 
         setVisible(true);
+
+        botonIngresar.addActionListener(e -> {
+            String numeroCuenta = JOptionPane.showInputDialog(this, "Introduce el numero de cuenta");
+            if (numeroCuenta == null){
+                return;
+            }
+
+            CuentaBancaria cuentaBuscada = gestor.buscarPorNumero(numeroCuenta);
+            if (cuentaBuscada == null){
+                JOptionPane.showMessageDialog(this, "Cuenta no encontrada", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String cantidadTexto = JOptionPane.showInputDialog(this, "Introduce la cantidad a ingresar");
+
+
+            try {
+                NumberFormat nf = NumberFormat.getNumberInstance();
+                Number valorIngreso = nf.parse(cantidadTexto);
+                double ingresoCuenta = valorIngreso.doubleValue();
+                if (ingresoCuenta <= 0){
+                    throw new NumberFormatException();
+                }else{
+                    cuentaBuscada.depositar(ingresoCuenta);
+                    JOptionPane.showMessageDialog (this,"Ingreso realizado con existo. Nuevo saldo: " + cuentaBuscada.getSaldo());
+                }
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(this, "Cantidad inválida", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        } );
+
+        botonRetirar.addActionListener(e -> {
+            String numeroCuenta = JOptionPane.showInputDialog(this, "Introduce el numero de cuenta");
+            if(numeroCuenta == null){
+                return;
+            }
+
+            CuentaBancaria cuentaBuscada = gestor.buscarPorNumero(numeroCuenta);
+            if(cuentaBuscada == null){
+                JOptionPane.showMessageDialog(this, "No se ha encontrado la cuenta", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String cantidadRetirar = JOptionPane.showInputDialog(this, "Ingresa la cantidad que quieres retirar");
+
+            try{
+
+                NumberFormat nf = NumberFormat.getNumberInstance();
+                Number valorRetirada = nf.parse(cantidadRetirar);
+                double retirada = valorRetirada.doubleValue();
+                if (retirada > cuentaBuscada.getSaldo()){
+                    throw new NumberFormatException();
+                }else {
+                    cuentaBuscada.retirar(retirada);
+                    JOptionPane.showMessageDialog(this, "Retirada exitosa. Nuevo saldo: " + cuentaBuscada.getSaldo());
+                }
+
+            } catch (ParseException ex) {
+                JOptionPane.showMessageDialog(this, "Cantidad inválida", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+
+
+        });
     }
 }

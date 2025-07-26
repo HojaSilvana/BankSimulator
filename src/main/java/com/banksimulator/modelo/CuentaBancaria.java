@@ -1,10 +1,14 @@
 package com.banksimulator.modelo;
 
-public class CuentaBancaria {
+import java.io.Serializable;
+
+public class CuentaBancaria implements Serializable {
 
     private String numeroCuenta;
     private double saldo;
     private Cliente cliente;
+
+    private static final long serialVersionUID = 1L;
 
     public CuentaBancaria(String numeroCuenta, double saldo, Cliente cliente) {
         this.numeroCuenta = numeroCuenta;

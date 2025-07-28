@@ -49,13 +49,72 @@ public class GestorCuentas {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public void cargarCuentasDesdeArchivo(String nombreArchivo) {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(nombreArchivo))) {
-            cuentas = (ArrayList<CuentaBancaria>) in.readObject();
+    public void cargarCuentasDesdeArchivo(String rutaArchivo) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(rutaArchivo))) {
+            List<CuentaBancaria> cuentasCargadas = (List<CuentaBancaria>) ois.readObject();
+            for (CuentaBancaria cuenta : cuentasCargadas) {
+                if (cuenta.getListaMovimientos() == null) {
+                    cuenta.setListaMovimientos(new ArrayList<>()); // para evitar el null
+                }
+            }
+            cuentas = cuentasCargadas;
+            System.out.println("Cuentas cargadas correctamente desde el archivo.");
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            System.out.println("Error al cargar cuentas desde archivo: " + e.getMessage());
         }
     }
+
+    public String estadisticasGenerales() {
+
+        int cantidad;
+        double saldoBanco;
+        CuentaBancaria mayorSaldo;
+        CuentaBancaria menorSaldo;
+        if (cuentas.isEmpty()) {
+            return "No hay cuentas registradas";
+        } else {
+
+            cantidad = cuentas.size();
+            saldoBanco = 0;
+            mayorSaldo = cuentas.get(0);
+            menorSaldo = cuentas.get(0);
+
+
+            for (CuentaBancaria cuenta : cuentas) {
+                double saldo = cuenta.getSaldo();
+                saldoBanco += saldo;
+            }
+
+            for (CuentaBancaria cuenta : cuentas) {
+                double saldoMax = 0;
+                if (cuenta.getSaldo() > saldoMax) {
+                    mayorSaldo = cuenta;
+                }
+            }
+
+            for (CuentaBancaria cuenta : cuentas) {
+                double saldoMin = 0;
+                if (cuenta.getSaldo() < saldoMin) {
+                    menorSaldo = cuenta;
+                }
+            }
+        }
+
+        return """
+                Estadísticas generales:
+                -----------------------
+                Número total de cuentas: %d
+                Saldo total del banco: %.2f €
+                Cuenta con más saldo: %s (%.2f €)
+                Cuenta con menos saldo: %s (%.2f €)
+                """.formatted(
+                cantidad,
+                saldoBanco,
+                mayorSaldo.getNumeroCuenta(), mayorSaldo.getSaldo(),
+                menorSaldo.getNumeroCuenta(), menorSaldo.getSaldo()
+        );
+
+    }
+
 
 }

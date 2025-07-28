@@ -6,9 +6,9 @@ import com.banksimulator.modelo.GestorCuentas;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.font.NumericShaper;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.time.LocalDate;
 
 public class VentanaPrincipal extends JFrame {
 
@@ -90,8 +90,14 @@ public class VentanaPrincipal extends JFrame {
         gbc.gridy = 5;
         JPanel panelBotones3 = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 0));
         JButton botonTransferencia = new JButton ("Hacer una transferencia");
+        JButton botonEditarCuenta = new JButton ("Editar Cuenta");
+        JButton botonHistorial = new JButton("Historial de Cuenta");
+        JButton estadisticasBancarias = new JButton ("Estadísticas del Banco");
 
         panelBotones3.add(botonTransferencia);
+        panelBotones3.add(botonEditarCuenta);
+        panelBotones3.add(botonHistorial);
+        panelBotones3.add(estadisticasBancarias);
         add(panelBotones3, gbc);
 
 
@@ -142,6 +148,7 @@ public class VentanaPrincipal extends JFrame {
                 }else{
                     cuentaBuscada.depositar(ingresoCuenta);
                     JOptionPane.showMessageDialog (this,"Ingreso realizado con existo. Nuevo saldo: " + cuentaBuscada.getSaldo());
+                    cuentaBuscada.agregarMovimiento("+ " + ingresoCuenta + " € ingresados el día: " + LocalDate.now());
                 }
             } catch (ParseException ex) {
                 JOptionPane.showMessageDialog(this, "Cantidad inválida", "Error", JOptionPane.ERROR_MESSAGE);
@@ -172,6 +179,7 @@ public class VentanaPrincipal extends JFrame {
                 }else {
                     cuentaBuscada.retirar(retirada);
                     JOptionPane.showMessageDialog(this, "Retirada exitosa. Nuevo saldo: " + cuentaBuscada.getSaldo());
+                    cuentaBuscada.agregarMovimiento("- " + cantidadRetirar + " € retirados por cajero el día " + LocalDate.now());
                 }
 
             } catch (ParseException ex) {
@@ -263,6 +271,10 @@ public class VentanaPrincipal extends JFrame {
                 if(cuenta1.retirar(transferencia)){
                     cuenta2.depositar(transferencia);
                     JOptionPane.showMessageDialog(this, "Transferencia realizada con exito");
+                    cuenta2.agregarMovimiento("+ " + transferencia + " € ingresados desde la cuenta " + cuenta1.getNumeroCuenta()
+                    + " por transferencia de " + cuenta1.getCliente().getNombre() + " el día " + LocalDate.now());
+                    cuenta1.agregarMovimiento("- " + transferencia + " € retirados por transferencia hacia la " + cuenta2.getNumeroCuenta() + " - " + cuenta2.getCliente().getNombre()
+                    + " el día " + LocalDate.now());
                 }else{
                     JOptionPane.showMessageDialog(this, "El saldo es insuficiente");
                 }
@@ -274,6 +286,72 @@ public class VentanaPrincipal extends JFrame {
                 JOptionPane.showMessageDialog (this, "Cantidad invalida", "Error de saldo", JOptionPane.ERROR_MESSAGE);
             }
 
+
+        });
+
+        botonEditarCuenta.addActionListener(e -> {
+
+            String numeroCuenta = JOptionPane.showInputDialog(this, "Introduce la cuenta que quieres modificar");
+            if(numeroCuenta == null){
+                return;
+            }
+
+            CuentaBancaria cuentaBuscada = gestor.buscarPorNumero(numeroCuenta);
+            if(cuentaBuscada == null){
+                JOptionPane.showMessageDialog(this, "No se ha encontrado ninguna cuenta registrada con ese valor", "Error", JOptionPane.ERROR_MESSAGE);
+            }else{
+                JTextField nombreTitular = new JTextField(cuentaBuscada.getCliente().getNombre());
+                JTextField dniTitular = new JTextField(cuentaBuscada.getCliente().getDni());
+
+                JPanel panel = new JPanel(new GridLayout(2, 2, 10, 10));
+                panel.add(new JLabel("Nuevo titular:"));
+                panel.add(nombreTitular);
+                panel.add(new JLabel("Nuevo DNI:"));
+                panel.add(dniTitular);
+
+                int opcion = JOptionPane.showConfirmDialog(this, panel, "Editar Cuenta", JOptionPane.OK_CANCEL_OPTION);
+
+                if(opcion == JOptionPane.OK_OPTION){
+                    cuentaBuscada.setCliente(new Cliente(nombreTitular.getText(), dniTitular.getText()));
+                    JOptionPane.showMessageDialog(this, "Datos actualizados correctamente");
+                }
+
+            }
+
+
+        });
+
+        botonHistorial.addActionListener(e -> {
+            String cuentaBuscada = JOptionPane.showInputDialog(this, "¿De que cuenta quieres ver el historial?");
+            if(cuentaBuscada == null){
+                return;
+            }
+
+            CuentaBancaria cuenta = gestor.buscarPorNumero(cuentaBuscada);
+
+            if(cuenta == null){
+                JOptionPane.showMessageDialog(this, "No se ha encontrado ninguna cuenta asociada", "Error", JOptionPane.ERROR_MESSAGE);
+
+            }else{
+
+                String historial = cuenta.consultarMovimientos();
+
+                JTextArea textArea = new JTextArea(historial);
+                textArea.setEditable(false);
+                JScrollPane scrollPane = new JScrollPane(textArea);
+                scrollPane.setPreferredSize(new Dimension(400, 200));
+
+                JOptionPane.showMessageDialog(this, scrollPane, "Historial de movimientos", JOptionPane.INFORMATION_MESSAGE);
+            }
+
+
+
+        });
+
+        estadisticasBancarias.addActionListener(e -> {
+
+            String resumen = gestor.estadisticasGenerales();
+            JOptionPane.showMessageDialog(this, resumen, "Estadísticas del Banco", JOptionPane.INFORMATION_MESSAGE);
 
         });
 
